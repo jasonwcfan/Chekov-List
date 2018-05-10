@@ -11,42 +11,39 @@ import styled from 'styled-components/native'
 
 import Table from './src/components/Table'
 
-const _ISSUES = [
-  {
-    patientName: 'John Doe',
-    roomNumber: 'D1',
-    doctorName: 'Doctor Strange',
-    issueDescription: 'something is wrong',
-    status: 'New'
-  },
-  {
-    patientName: 'Alex Smith',
-    roomNumber: 'D2',
-    doctorName: 'Doctor Manhattan',
-    issueDescription: 'bad poo poo',
-    status: 'New'
-  },
-  {
-    patientName: 'Mary Jane',
-    roomNumber: 'D3',
-    doctorName: 'Doctor Doom',
-    issueDescription: 'everything hurts',
-    status: 'New'
-  }
-]
+const SERVER_URL = 'http://f1cca312.ngrok.io/graphql'
 
 export default class App extends React.Component {
   state = {
-    issues: _ISSUES,
+    issues: [],
     orientation: this.getOrientation(Dimensions.get('screen'))
   }
 
-  componentWillMount() {
+  async componentWillMount() {
     Dimensions.addEventListener('change', (dims) => {
       this.setState({
         orientation: this.getOrientation(dims.screen)
       })
     })
+    
+    const response = await this.fetchIssueList()
+    
+    this.setState({
+      issues: response.data.issues
+    })
+  }
+  
+  fetchIssueList = async () => {
+    const response = await fetch(SERVER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        'query': '{ issues { patientName roomNumber doctorName issueDescription status }}'
+      })
+    })
+    return await response.json()
   }
 
   getOrientation(dims) {
